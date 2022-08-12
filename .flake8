@@ -1,0 +1,50 @@
+[flake8]
+
+###########
+# PROCESS #
+###########
+
+# Specify the number of subprocesses that Flake8 will use to run checks in parallel.
+jobs=auto
+
+
+########################
+# FILE SELECTION RULES #
+########################
+
+exclude=
+    __pycache__/,
+    venv,
+    env,
+    conf/,
+    .git,
+    settings.ini,
+
+filename=
+    *.py
+
+
+#################
+# LINTING RULES #
+#################
+
+doctests=True
+
+# Maximum length of a line
+max-line-length=100
+
+# Maximum tolerated McCabe complexity
+max-complexity=8
+
+ignore=W503
+select=C,E,F,W,B
+
+##########
+# OUTPUT #
+##########
+
+# Print the total number of errors.
+count=True
+
+# Count the number of occurrences of each error/warning code and print a report.
+statistics=True
