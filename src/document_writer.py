@@ -132,7 +132,11 @@ class ClassWriter(BaseWriter):
         self.methods = methods
         self.docstring_writer = docstring_writer or DocstringWriter()
         self.docstring = self.docstring_writer.get_class_doc()
-        self.superclass_name = kwargs.get('superclass_name') or ''
+        if kwargs.get('is_abstract'):
+            self.superclass_name = 'ABC'
+            self.required_imports.setdefault('abc', set()).add('ABC')
+        else:
+            self.superclass_name = kwargs.get('superclass_name') or ''
 
     def _mount_methods(self):
         methods_text = ''
@@ -151,6 +155,7 @@ class ClassWriter(BaseWriter):
             'dict': ' = {}',
             'list': ' = []',
             'set': ' = set()',
+            'bool': ' = False',
             'date': ': date | None = None',
             'datetime': ': datetime | None = None',
         }.get(type_description) or ' = None'

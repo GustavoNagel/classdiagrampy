@@ -6,7 +6,7 @@ from src.graph import Graph
 from src.xml_handler import DiagramXMLHandler
 
 
-file_name = 'class-diagram-example-drawio.xml'
+file_name = 'class-diagram-services-banking-drawio.xml'
 output_file = 'auto_generated_file.py'
 
 diagram_handler = DiagramXMLHandler(file_name)
@@ -19,13 +19,33 @@ my_graph = Graph(
     oriented=True,
 )
 
-attrib_regex = re.compile(r'\+ (\w+)\: (\w+)')
-method_regex = re.compile(r'\+ (\w+)\(([\w\s\d\:\,\*]*)\)\: ?(\w+)')
+attrib_regex = re.compile(r'\+ (\w+)\: ?(\w+)?')
+method_regex = re.compile(r'\+ (\w+)\(([\w\s\d\:\,\*]*)\)\: ?(\w+)?')
 params_regex = re.compile(r'(?:^|\, ?)(\w+)(?: ?\*)?(?:\: ?(\w+))?')
 
+
+def check_if_abstract(_class):
+    abstract_ref = re.search(r' ?\{[Aa]bstract\}', _class.get('value'))
+    if abstract_ref:
+        _class['superclass_name'] = 'ABC'
+        return True, _class['value'].replace(abstract_ref.group(0), '')
+
+    return False, _class['value']
+
+
 class_list = []
-for class_id, _class in diagram_handler.iter_elements(my_graph['1'], filter='class'):
-    class_content = {'id': class_id, 'name': _class.get('value'), 'attributes': [], 'methods': []}
+for class_id, _class in diagram_handler.iter_elements(
+    my_graph['WIyWlLk6GJQsqaUBKTNV-1'],
+    filter='class',
+):
+    is_abstract, name = check_if_abstract(_class)
+    class_content = {
+        'id': class_id,
+        'name': name,
+        'attributes': [],
+        'methods': [],
+        'is_abstract': is_abstract,
+    }
     for _, text_attributes in diagram_handler.iter_elements(my_graph[class_id], filter='text'):
         class_content['attributes'].extend(re.findall(attrib_regex, text_attributes.get('value')))
         _methods = re.findall(method_regex, text_attributes.get('value'))
@@ -40,10 +60,13 @@ def find_in_class_list(id, class_list):
     return next((_class for _class in class_list if _class.get('id') == id), None)
 
 
-for _, link_attributes in diagram_handler.iter_elements(my_graph['1'], filter='link'):
+for _, link_attributes in diagram_handler.iter_elements(
+    my_graph['WIyWlLk6GJQsqaUBKTNV-1'],
+    filter='link',
+):
     print('Found', link_attributes['source'], link_attributes['target'])
-    end_arrow = re.match(r'endArrow=(\w+);', link_attributes['style']).group(1)
-    if end_arrow == 'block':
+    end_arrow = re.match(r'endArrow=(\w+);', link_attributes['style'])
+    if end_arrow and end_arrow.group(1) == 'block':
         source = find_in_class_list(link_attributes['source'], class_list)
         target = find_in_class_list(link_attributes['target'], class_list)
         if source and target and target.get('name'):
