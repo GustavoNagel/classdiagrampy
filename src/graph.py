@@ -53,3 +53,25 @@ class Graph:
 
     def __getitem__(self, vertex: str) -> set:
         return self._graph_dict[vertex]
+
+
+class RootedTreeGraph(Graph):
+    """Rooted Tree Graph.
+
+    :edges: a list of edges to use in rooted tree graph creation.
+    """
+
+    def __init__(self, edges):
+        super().__init__(edges, oriented=True)
+
+    @property
+    def root(self):
+        return self._get_root()
+
+    def _get_root(self):
+        vertices = self.get_all_vertices()
+        target_vertices = set()
+        for elem in self._graph_dict.values():
+            target_vertices.update(elem)
+        root = vertices - target_vertices
+        return next(iter(root)) if len(root) == 1 else None

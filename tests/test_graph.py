@@ -2,14 +2,15 @@
 
 import pytest
 from collections import defaultdict
-from src.graph import Graph
+from src.graph import Graph, RootedTreeGraph
+
+
+@pytest.fixture
+def fake_edges(autouse=True):
+    return [('A', 'B'), ('B', 'C'), ('B', 'D'), ('C', 'E'), ('C', 'F')]
 
 
 class TestBasicGraph:
-
-    @pytest.fixture
-    def fake_edges(self, autouse=True):
-        return [('A', 'B'), ('B', 'C'), ('B', 'D'), ('C', 'E'), ('C', 'F')]
 
     @pytest.fixture
     def testing_graph(self, fake_edges, autouse=True):
@@ -35,6 +36,7 @@ class TestBasicGraph:
         assert testing_graph.get_all_vertices() == {'A', 'B', 'C', 'D', 'E', 'F'}
         assert len(all_edges) == 10
         assert testing_graph['C'] == {'B', 'E', 'F'}
+        assert testing_graph['G'] == set()
 
     def test_add_edges(self, testing_graph):
         assert len(testing_graph.get_all_edges()) == 10
@@ -50,3 +52,13 @@ class TestBasicGraph:
         for vertex in testing_graph:
             vertices = vertices.replace(vertex, '')
         assert not vertices
+
+
+class TestRootedTreeGraph:
+
+    def test_init_from_edges(self, fake_edges):
+        rooted_tree_graph = RootedTreeGraph(fake_edges)
+        assert getattr(rooted_tree_graph, 'oriented') is True
+        assert rooted_tree_graph.root == 'A'
+        rooted_tree_graph.add_edge('G', 'A')
+        assert rooted_tree_graph.root == 'G'
